@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    {% include "bootstrap.html" %}
+    {% load bootstrap4 %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSCI 620: Chess Project - Game In Progress</title>
+
+    <link rel="stylesheet" href="{% static 'css/chessboard.css' %}">
+    <script src="{% static 'js/chessboard.js' %}" defer></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const gameId = "{{ current_game.id }}";
+            
+            function updateBoard() {
+                $.ajax({
+                    url: `/get-game-state/${gameId}/`,
+                    type: 'GET',
+                    success: function(response) {
+                        if (!response.active) {
+                            // Optionally, display the outcome before redirecting
+                            alert(`Game ended: ${response.outcome}`);
+                            // Redirect to home page
+                            window.location.href = "{% url 'home' %}";
+                            return;
+                        }
+
+                        // Update the chessboard
+                        const boardData = response.page_data.rows;
+                        for (let row of boardData) {
+                            for (const [square, piece] of Object.entries(row)) {
+                                if (square !== 'row_number' && square !== 'row_labels') {
+                                    $(`#${square}`).html(piece);  // Update the piece on the board
+                                }
+                            }
+                        }
+
+                        // Update whose turn it is
+                        const currentTurn = response.current_turn;
+                        if (currentTurn === 'white') {
+                            $('.alert-info').text(`It's White's turn (${response.player1}).`);
+                        } else {
+                            $('.alert-info').text(`It's Black's turn (${response.player2}).`);
+                        }
+                    },
+                    error: function(error) {
+                        console.log('Error fetching game state:', error);
+                    }
+                });
+            }
+
+            setInterval(updateBoard, 1000);
+        });
+    </script>
+    <script>
+        const gameId = "{{ current_game.id }}";  // Make sure game ID is passed
+    </script>
+</head>
+<body>
+    {% include "navigation.html" %}
+
+    <h1>Chess Game In Progress</h1>
+
+    <div class="container">
+        <!-- Display whose turn it is -->
+        <div class="alert alert-info text-center">
+            {% if current_turn == 'white' %}
+                It's White's turn ({{ current_game.player1.username }}).
+            {% else %}
+                It's Black's turn ({{ current_game.player2.username }}).
+            {% endif %}
+        </div>
+
+        <!-- Chessboard Rendering -->
+        <table class="chessboard">
+            {% for row in page_data.rows %}
+                <tr>
+                    {% if row.row_number %}
+                        <th class="no-border">{{ row.row_number }}</th>
+                    {% endif %}
+                    
+                    {% for key, value in row.items %}
+                        {% if key != 'row_number' and key != 'row_labels' %}
+                            <td id="{{ key }}">{{ value|safe }}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% if row.row_labels %}
+                <tr>
+                    <th class="no-border"></th>
+                    {% for label, value in row.row_labels.items %}
+                        <th class="no-border">{{ value }}</th>
+                    {% endfor %}
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+
+        <!-- Make a Move Form -->
+        <h3>Make a Move</h3>
+        <div class="form-group text-center">
+            <form method="POST">
+                {% csrf_token %}
+                {% bootstrap_form chessboard_form %}
+        
+                <!-- Always enable the Move and Resign buttons, regardless of the current turn -->
+                <button type="submit" name="move" class="btn btn-primary">Move</button>
+                <button type="submit" name="resign" class="btn btn-danger">Resign</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

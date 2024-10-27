@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "bootstrap.html" %}
+    {% load static %}
+    {% load bootstrap4 %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+    {% include "navigation.html" %}
+    <div class="container">
+        <div class="jumbotron">
+            <h1>Login</h1>
+            <form method="POST">
+                {% csrf_token %}
+                {% bootstrap_form login_form %}
+
+                <!-- Display the error message if exists -->
+                {% if error %}
+                <div class="alert alert-danger">
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <table>
+                    <tr>
+                        <td colspan="2">
+                            <input type="submit" class="btn btn-primary" value="Login">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            Don't have an account? <a href="/join">Join here</a>.
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

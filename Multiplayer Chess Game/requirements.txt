@@ -1,0 +1,13 @@
+Django==4.2.16
+asgiref==3.8.1
+beautifulsoup4==4.12.3
+chess==1.11.0
+Django==4.2.16
+django-bootstrap4==24.4
+gitdb==4.0.11
+GitPython==3.1.41
+python-chess==1.999
+setuptools==69.0.3
+smmap==5.0.1
+soupsieve==2.6
+sqlparse==0.5.1

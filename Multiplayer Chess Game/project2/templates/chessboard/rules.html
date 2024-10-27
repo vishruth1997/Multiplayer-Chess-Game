@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    {% include "bootstrap.html" %}
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/chessboard.css' %}">
+    <script src="{% static 'js/chessboard.js' %}" defer></script>
+    <title>Document</title>
+</head>
+<body>
+    {%include "navigation.html"%}
+    <ul>
+        <li><strong>Pawn:</strong> Advances one square, although from its initial position, it can advance two squares, captures in a diagonal fashion..</li>
+        <li><strong>Rook:</strong> Can move in any number of squares both vertically and horizontally. It has a role in casting as well.</li>
+        <li><strong>Knight:</strong> Forms a L shape by moving two squares in one direction and then one square in the opposite direction. The ability to leap over other pieces is unique to it.</li>
+        <li><strong>Bishop:</strong> Can move any number of squares diagonally. With one bishop on a light square and one on a dark square, each player begins with two bishops.</li>
+        <li><strong>Queen:</strong> Can move any number of squares in a horizontal, vertical, or diagonal direction. On the board, it is the most potent piece.</li>
+        <li><strong>King:</strong> Can move in any direction by one square. The aim of the game is to checkmate the king of the opposition.</li>
+    </ul>
+</body>
+</html>

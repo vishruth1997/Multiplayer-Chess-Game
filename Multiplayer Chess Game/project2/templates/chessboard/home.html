@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    {% include "bootstrap.html" %}
+    {% load bootstrap4 %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSCI 620: Chess Project - Home</title>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#gameHistoryTable').DataTable({
+                "paging": true,
+                "pageLength": 10,
+                "lengthChange": false,
+                "ordering": true,
+                "info": false,
+                "autoWidth": false
+            });
+        });
+
+        function updateOnlineUsers() {
+            $.ajax({
+                url: "{% url 'online_users_ajax' %}",
+                type: "GET",
+                success: function(data) {
+                    var usersOnlineList = data.online_users;
+                    var usersListHtml = '';
+
+                    if (usersOnlineList.length > 0) {
+                        usersOnlineList.forEach(function(user) {
+                            usersListHtml += '<li class="list-group-item">' + user.username + '</li>';
+                        });
+                    } else {
+                        usersListHtml = '<li class="list-group-item">No players online</li>';
+                    }
+
+                    $('#online-users-list').html(usersListHtml);
+                }
+            });
+        }
+
+        // Set polling interval to 1 second (1000 milliseconds)
+        setInterval(updateOnlineUsers, 1000);
+
+        // Run once on page load
+        updateOnlineUsers();
+
+        // AJAX Challenge Form Submission
+        $(document).ready(function() {
+            $('#challenge-form').submit(function(event) {
+                event.preventDefault();
+                $.ajax({
+                    url: "{% url 'send_challenge_ajax' %}",
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                    success: function(response) {
+                        if (response.success) {
+                            // Redirect the challenging user to game_in_progress
+                            window.location.href = "{% url 'game_in_progress' %}";
+                        } else {
+                            alert(response.error);
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred while sending the challenge.');
+                    }
+                });
+            });
+
+            // Polling for incoming challenges
+            function checkForChallenges() {
+                $.ajax({
+                    url: "{% url 'check_for_challenges' %}",
+                    type: "GET",
+                    success: function(data) {
+                        if (data.challenge_received) {
+                            // Redirect the challenged user to game_in_progress
+                            window.location.href = "{% url 'game_in_progress' %}";
+                        }
+                    }
+                });
+            }
+
+            // Set polling interval to 1 seconds
+            setInterval(checkForChallenges, 1000);
+        });
+    </script>
+</head>
+<body>
+    {% include "navigation.html" %}
+
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Left Column: Challenge Another Player -->
+            <div class="col-md-6">
+                <h2>Challenge Another Player</h2>
+                <form id="challenge-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="opponent">Select an opponent:</label>
+                        {{ challenge_form.opponent }}
+                    </div>
+                    <button type="submit" name="challenge" class="btn btn-primary">Challenge Player</button>
+                </form>
+
+                <h3>Online Players</h3>
+                <ul id="online-users-list" class="list-group">
+                    <!-- This will be dynamically populated by AJAX -->
+                </ul>
+            </div>
+
+            <!-- Right Column: Game History -->
+            <div class="col-md-6">
+                <h2>Game History</h2>
+                <table id="gameHistoryTable" class="table table-striped table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Opponent</th>
+                            <th>Moves</th>
+                            <th>Outcome</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for game in page_obj %}
+                            <tr>
+                                <td>
+                                    {% if game.player1 == request.user %}
+                                        {{ game.player2.username }}
+                                    {% else %}
+                                        {{ game.player1.username }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ game.moves }}</td>
+                                <td>{{ game.user_outcome }}</td>
+                                <td>
+                                    <!-- Display user-specific description -->
+                                    {% for journal in user_journal_entries %}
+                                        {% if journal.game.id == game.id %}
+                                            {{ journal.description|default:"No description available." }}
+                                        {% endif %}
+                                    {% empty %}
+                                        No description available.
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'edit_description' game.id %}" class="btn btn-warning btn-sm">Edit</a>
+                                    <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ game.id }}">Delete</button>
+
+                                    <!-- Modal for Deleting Game for Current User -->
+                                    <div class="modal fade" id="deleteModal{{ game.id }}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel">Delete Game</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to delete this game and its journal entry from your account?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <form method="POST" action="{% url 'delete_game' game.id %}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- Pagination Controls -->
+                <div class="pagination">
+                    <span class="step-links">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1">&laquo; first</a>
+                            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                        {% endif %}
+                        <span class="current">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                        </span>
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}">next</a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

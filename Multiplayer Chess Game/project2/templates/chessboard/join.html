@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "bootstrap.html" %}
+    {% load static %}
+    {% load bootstrap4 %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join</title>
+</head>
+<body>
+    {% include "navigation.html" %}
+    <div class="container">
+        <div class="jumbotron">
+            <h1>Join</h1>
+            <form method="POST">
+                {% csrf_token %}
+                {% bootstrap_form join_form %}
+                <table>
+                    <!-- {{ join_form.as_table }} -->
+                    <tr>
+                        <td>
+                            <input type="submit" class="btn btn-primary" value="Join">
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

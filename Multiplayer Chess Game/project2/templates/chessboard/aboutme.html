@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    {% include "bootstrap.html" %}
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/chessboard.css' %}">
+    <script src="{% static 'js/chessboard.js' %}" defer></script>
+    <title>Document</title>
+</head>
+<body>
+    {%include "navigation.html"%}
+    <section>
+        <h2>About Me</h2>
+        <div id="about-me">
+            <p id="about-me-para">My name is Vishruth Byarmadu Lokesh, a Computer Science graduate student with prominent passion towards trending Technologies like Web-Development, Android Application Development, and Machine Learning. Technology has never failed to intrigue me, and it is through this passion to find tech solutions to everyday problems that I decided to pursue my career in Technology. With strong programming skills in Python, Java, Experience in working in Teams, Project Management methodologies like Agile Scrum, waterfall and so on, I look forward to working in a challenging environment where I can apply all my experience as a Software Developer and make significant contributions to the company help bring great success to us both.</p>
+            <img src="{% static 'Vishruth Byaramadu Lokesh.jpg' %}" alt="Vishruth's Profile Picture"  id="about-me-pic">
+        </div>
+    </section>
+</body>
+</html>
